@@ -49,6 +49,8 @@ const int DEMUX_B = 19;
 const int DEMUX_C = 20;
 const int DEMUX_OUT = 5;
 
+const int STOPALL_PIN = 15;
+bool stopAllPinPrevState = true;
 
 //
 //const int num_array[10][7] = {  { 1, 1, 1, 1, 1, 1, 0 }, // 0
@@ -109,7 +111,8 @@ void DisplayDemuxIndex(int i){
   digitalWrite(DEMUX_OUT, HIGH);
 }
 
-int TOGGLE_ALL_PIN = 15;
+
+
 
 LooperChannel loopers[LOOPERS_AMOUNT] = {
   LooperChannel(14,   1,  3, 48, 20, 49),
@@ -157,7 +160,7 @@ void setup()
 
   //
   pinMode(CHANGE_DRUM_PIN,  INPUT_PULLUP);
-  pinMode(TOGGLE_ALL_PIN,  INPUT_PULLUP);
+  pinMode(STOPALL_PIN,  INPUT_PULLUP);
 
 }
 
@@ -176,14 +179,6 @@ void loop()
     int note = rx.byte2;
     int velocity = rx.byte3;
     if (rx.header != 0) {
-//      Serial.print("\t Received: ");
-//      Serial.print(rx.header, DEC);
-//      Serial.print("-");
-//      Serial.print(rx.byte1, DEC);
-//      Serial.print("-");
-//      Serial.print(rx.byte2, DEC);
-//      Serial.print("-");
-//      Serial.println(velocity, DEC);
       // *************************
       // MIDI IN to Beat Display
       if (velocity > 64) {
@@ -198,26 +193,6 @@ void loop()
       }
     }
   } while (rx.header != 0);
-
-
-  // *************************
-  // MIDI IN to Beat Display
-  //
-  //    midiEventPacket_t rx;
-  //    rx = MidiUSB.read();
-  //    if(rx.byte3 > 64){
-  //      Serial.println("boop");
-  ////      Serial.println(rx.byte2);
-  ////      if( rx.byte2 == 72){
-  ////        // Uso la nota C4 como set obligatorio del beat 1
-  ////        // Asi me garantizo siempre estar en sincro
-  ////        currTempo = 0;
-  ////      }else{
-  //        currTempo++;
-  //        if(currTempo > 5) currTempo = 0;
-  ////      }
-  //    }
-  // *************************
 
 
 
@@ -272,6 +247,23 @@ void loop()
   // *************************
 
 
+
+
+ 
+  // *************************
+  // Stop All Button
+  // *************************
+    bool stopAllPinState = (digitalRead(STOPALL_PIN) == HIGH);
+    if ( !stopAllPinState  && stopAllPinState != stopAllPinPrevState ){
+      noteOn(0, 23, 127);
+    }
+    stopAllPinPrevState = stopAllPinState;
+  // *************************
+
+
+
+  
+
   // *************************
   // Loopers Logic
   // *************************
@@ -282,11 +274,7 @@ void loop()
     if ( loopers[i].currRecState != loopers[i].prevRecState) {
 
       if ( loopers[i].currRecState == LOW) {
-//        Serial.println("REC BT PRESS");
-        //loopers[i].RecButtonPressed();
 
-//        Serial.println(loopers[i].status());
-        //send midi cc on
         if ( loopers[i].status() == 0) {
           // clear -> rec
           noteOn(0, loopers[i].midiRecNote, 127);
@@ -310,13 +298,8 @@ void loop()
         }
 
       } else {
-
-//        Serial.println("REC BT Released");
+        // Serial.println("REC BT Released");
         loopers[i].RecButtonReleased();
-        //        if( loopers[i].status() == 1){
-        //          noteOff(0, loopers[i].midiRecNote, 127);
-        //        }
-
       }
     }
 
@@ -330,13 +313,13 @@ void loop()
     if ( loopers[i].currClearState != loopers[i].prevClearState) {
 
       if ( loopers[i].currClearState == LOW) {
-//        Serial.println("Clear BT PRESS");
+      // Serial.println("Clear BT PRESS");
         loopers[i].ClearButtonPressed();
         //send midi cc on
         noteOn(0, loopers[i].midiClearNote, 64);
       } else {
 
-//        Serial.println("Clear BT Released");
+        // Serial.println("Clear BT Released");
         loopers[i].RecButtonReleased();
         noteOff(0, loopers[i].midiClearNote, 127);
       }
