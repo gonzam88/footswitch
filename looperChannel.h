@@ -34,7 +34,7 @@ class LooperChannel
 	private: // members for private use only
 
 		int _status;
-		int _ledState = LOW;
+		int _ledState = 0;
 		// status
 		// 0 = clear
 		// 1 = recording
@@ -78,13 +78,13 @@ void LooperChannel::loop() // set the selected PIN to be a digital output
 			previousMillis = currentMillis;
 
 			// if the LED is off turn it on and vice-versa:
-			if (_ledState == LOW) {
-				_ledState = HIGH;
+			if (_ledState == 0) {
+				_ledState = 255;
 			} else {
-				_ledState = LOW;
+				_ledState = 0;
 			}
 			// set the LED with the _ledState of the variable:
-			digitalWrite(ledPin, _ledState);
+			analogWrite(ledPin, _ledState);
 		}
 	
 	}else if(_status == 3){
@@ -99,7 +99,8 @@ void LooperChannel::loop() // set the selected PIN to be a digital output
 
     fadeValue = max(fadeValue,20);
     fadeValue = min(fadeValue,100);
-    analogWrite(ledPin, fadeValue);   
+    analogWrite(ledPin, fadeValue);
+    
 	}
 }
 
@@ -127,7 +128,7 @@ void LooperChannel::RecButtonPressed()
 
 void LooperChannel::RecButtonReleased()
 {
-//  Serial.println("REC BT Release");
+//  u.println("REC BT Release");
 }
 
 void LooperChannel::ClearButtonPressed()
@@ -156,19 +157,17 @@ void LooperChannel::StopRecording()
 void LooperChannel::ResumePlayback()
 {
 	_status = 2;
-	digitalWrite(ledPin, HIGH);
+	analogWrite(ledPin, 255);
 }
 
 void LooperChannel::PausePlayback()
 {
 	_status = 3;
-	analogWrite(ledPin, 10);
-  //fade in/out in loop
-   
+  //fade in/out in loop   
 }
 
 void LooperChannel::Clear()
 {
 	_status = 0;
-	digitalWrite(ledPin, LOW);
+	analogWrite(ledPin, 0);
 }
