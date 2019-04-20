@@ -27,8 +27,6 @@ void controlChange(byte channel, byte control, byte value) {
 }
 
 
-
-
 unsigned long previousMillis = 0;
 int screenTimerCounter = 0;
 int screenMode = 0;
@@ -38,23 +36,26 @@ int screenMode = 0;
 
 const int setupShowDuration = 2000;
 int setupShowCurrLed = 0;
-
 int currTempo = 0;
 
-int drumsChannel = 0;
-const int maxDrumsChannels = 4;
-int drumsChannelDisplayCount = 0;
-const int CHANGE_DRUM_PIN = 2;
-bool changeDrumPrevState = true;
-const int DRUMS_DISPLAY_DURATION = 3000;
 
 const int DEMUX_A = 21;
 const int DEMUX_B = 19;
 const int DEMUX_C = 20;
 const int DEMUX_OUT = 5;
 
+
 const int STOPALL_PIN = 15;
 bool stopAllPinPrevState = true;
+
+
+const int NEXT_DRUM_PIN = 2;
+const int maxDrumsChannels = 3;
+bool nextDrumPrevState = true;
+int drumsChannel = 0;
+bool changeDrumPrevState = true;
+const int DRUMS_DISPLAY_DURATION = 3000;
+
 
 
 const bool secuenciaDemux[7][3] =  {  
@@ -100,8 +101,8 @@ void setup()
   pinMode(DEMUX_C,  OUTPUT);
   pinMode(DEMUX_OUT,  OUTPUT);
 
-  pinMode(CHANGE_DRUM_PIN,  INPUT_PULLUP);
   pinMode(STOPALL_PIN,  INPUT_PULLUP);
+  pinMode(NEXT_DRUM_PIN,  INPUT_PULLUP);
 }
 
 void loop()
@@ -135,19 +136,43 @@ void loop()
 
 
   // *************************
-  // LED Display Logic
+  // LED Display Logic (?)
   // *************************
   unsigned long currentMillis = millis();
   unsigned int deltaTime = currentMillis - previousMillis;
   previousMillis = currentMillis;
   screenTimerCounter += deltaTime;
 
-  bool changeDrumPinState = (digitalRead(CHANGE_DRUM_PIN) == HIGH);
+
+  // *************************
+  // Next Drum Button
+  // *************************
+  bool changeDrumPinState = (digitalRead(NEXT_DRUM_PIN) == HIGH);
   if ( !changeDrumPinState  && changeDrumPinState != changeDrumPrevState ) {
     drumsChannel++;
     if (drumsChannel + 1 > maxDrumsChannels) {
       drumsChannel = 0;
     }
+
+    switch(drumsChannel){
+      case 0:
+        controlChange(0, 24, 127); // Activar Canal
+        controlChange(0, 25, 0); // Apagar canal
+        controlChange(0, 26, 0); // Apagar canal
+      break;
+      case 1:
+        controlChange(0, 24, 0);
+        controlChange(0, 25, 127);
+        controlChange(0, 26, 0);
+      break;
+      case 2:
+        controlChange(0, 24, 0);
+        controlChange(0, 25, 0);
+        controlChange(0, 26, 127);
+      break;
+    }
+
+    
     if (screenMode != 2) {
       screenMode = 2;
       screenTimerCounter = 0;
@@ -157,19 +182,11 @@ void loop()
 
   if (screenMode == 0) {
     // init show
-//    setupShowLedDuration += deltaTime;
-
-    //if (screenTimerCounter >= setupShowLedDuration) {
-      //setupShowLedDuration = 0;
-//      digitalWrite(screenPos[setupShowCurrLed], LOW);
     DisplayDemuxIndex(setupShowCurrLed);
-      setupShowCurrLed++;
-      if (setupShowCurrLed > 5)setupShowCurrLed = 0;
-//    }
-    //digitalWrite(screenPos[setupShowCurrLed], HIGH);
-
+    setupShowCurrLed++;
+    
     if (screenTimerCounter >= setupShowDuration) {
-      
+      // show mustn-t go on   
       screenMode = 1;
     }
 
