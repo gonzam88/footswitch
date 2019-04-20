@@ -40,7 +40,7 @@ class LooperChannel
 		// 1 = recording
 		// 2 = playing loop
 		// 3 = paused
-		const long blinkInterval = 200;
+		const int blinkInterval = 200;
 		unsigned long previousMillis = 0;
     int fadeValue = 20;
     bool fadeGoingUp = true;
@@ -162,7 +162,7 @@ void LooperChannel::ResumePlayback()
 void LooperChannel::PausePlayback()
 {
 	_status = 3;
-	//analogWrite(ledPin, 50);
+	analogWrite(ledPin, 10);
   //fade in/out in loop
    
 }
