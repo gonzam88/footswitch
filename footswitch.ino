@@ -28,6 +28,8 @@ void controlChange(byte channel, byte control, byte value) {
 
 
 
+
+unsigned long previousMillis = 0;
 int screenTimerCounter = 0;
 int screenMode = 0;
 // 0 = setup show
@@ -36,6 +38,8 @@ int screenMode = 0;
 
 const int setupShowDuration = 2000;
 int setupShowCurrLed = 0;
+
+int currTempo = 0;
 
 int drumsChannel = 0;
 const int maxDrumsChannels = 4;
@@ -52,26 +56,6 @@ const int DEMUX_OUT = 5;
 const int STOPALL_PIN = 15;
 bool stopAllPinPrevState = true;
 
-//
-//const int num_array[10][7] = {  { 1, 1, 1, 1, 1, 1, 0 }, // 0
-//  { 0, 1, 1, 0, 0, 0, 0 }, // 1
-//  { 1, 1, 0, 1, 1, 0, 1 }, // 2
-//  { 1, 1, 1, 1, 0, 0, 1 }, // 3
-//  { 0, 1, 1, 0, 0, 1, 1 }, // 4
-//  { 1, 0, 1, 1, 0, 1, 1 }, // 5
-//  { 1, 0, 1, 1, 1, 1, 1 }, // 6
-//  { 1, 1, 1, 0, 0, 0, 0 }, // 7
-//  { 1, 1, 1, 1, 1, 1, 1 }, // 8
-//  { 1, 1, 1, 0, 0, 1, 1 }
-//};   // 9
-//
-//const int tempo_array[6][7] =  {  { 1, 0, 0, 0, 0, 0, 0 },
-//  { 0, 1, 0, 0, 0, 0, 0 },
-//  { 0, 0, 1, 0, 0, 0, 0 },
-//  { 0, 0, 0, 1, 0, 0, 0 },
-//  { 0, 0, 0, 0, 1, 0, 0 },
-//  { 0, 0, 0, 0, 0, 1, 0 }
-//};
 
 const bool secuenciaDemux[7][3] =  {  
   { 0, 0, 0},
@@ -82,24 +66,6 @@ const bool secuenciaDemux[7][3] =  {
   { 1, 0, 1},
   { 0, 1, 1}
 };
-
-int currTempo = 0;
-//
-//void Num_Write(int number)
-//{
-//  for (int j = 0; j < 8; j++) {
-//    int pin = screenPos[j];
-//    digitalWrite(pin, num_array[number][j]);
-//  }
-//}
-//
-//void Tempo_Write(int number)
-//{
-//  for (int j = 0; j < 8; j++) {
-//    int pin = screenPos[j];
-//    digitalWrite(pin, tempo_array[number][j]);
-//  }
-//}
 
 void DisplayDemuxIndex(int i){
   int pin_a_value = secuenciaDemux[i][0];
@@ -112,8 +78,7 @@ void DisplayDemuxIndex(int i){
 }
 
 
-
-
+// Inicio las clases de de loopers
 LooperChannel loopers[LOOPERS_AMOUNT] = {
   LooperChannel(14,   1,  3, 48, 20, 49),
   LooperChannel(16,   0,  10, 50, 21, 51),
@@ -123,23 +88,8 @@ LooperChannel loopers[LOOPERS_AMOUNT] = {
 
 
 
-void MuteAll() {
-  for (int i = 0; i < LOOPERS_AMOUNT; i++) {
-    controlChange(0, loopers[i].midiPauseNote, 0); // Apagar canal
-  }
-}
-
-void PlayAll() {
-  for (int i = 0; i < LOOPERS_AMOUNT; i++) {
-    controlChange(0, loopers[i].midiPauseNote, 127); // Activar Canal
-  }
-}
-
-
 void setup()
 {
-//  Serial.beginu(9600);
-//  Serial.println("hola");
   for (int i = 0; i < LOOPERS_AMOUNT; i++) {
     loopers[i].setup();
   }
@@ -149,22 +99,10 @@ void setup()
   pinMode(DEMUX_B,  OUTPUT);
   pinMode(DEMUX_C,  OUTPUT);
   pinMode(DEMUX_OUT,  OUTPUT);
-  // Screen LEDS
-//  pinMode(3,   OUTPUT);
-//  pinMode(5,   OUTPUT);
-//  pinMode(6,   OUTPUT);
-//  pinMode(8,   OUTPUT);
-//  pinMode(9,   OUTPUT);
-//  pinMode(10,  OUTPUT);
-//  pinMode(21,  OUTPUT);
 
-  //
   pinMode(CHANGE_DRUM_PIN,  INPUT_PULLUP);
   pinMode(STOPALL_PIN,  INPUT_PULLUP);
-
 }
-
-unsigned long previousMillis = 0;
 
 void loop()
 {
